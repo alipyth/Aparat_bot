@@ -1,0 +1,77 @@
+from selenium import webdriver
+from selenium.webdriver import ActionChains
+import time
+from bs4 import BeautifulSoup
+
+def main():
+  driver = webdriver.Chrome('chromedriver.exe')
+  executor_url = driver.command_executor._url # pylint: disable=W0212
+  session_id = driver.session_id
+  driver.get("https://www.aparat.com/login")
+  time.sleep(5)
+  # فیلد یوزرنیم
+  element = driver.find_element_by_xpath('//*[@id="username"]')
+  ActionChains(driver).click(element).perform()
+  time.sleep(5)
+  element.send_keys('شماره موبایل') #شماره موبایل
+  time.sleep(3)
+  #کلیک روی دکمه ادامه
+  btn = driver.find_element_by_xpath('//*[@id="main-container"]/section/div/div[2]/form/button')
+  ActionChains(driver).click(btn).perform()
+  time.sleep(3)
+  #فیلد پسورد
+  passw = driver.find_element_by_xpath('//*[@id="password"]')
+  time.sleep(5)
+  passw.send_keys('پسورد شما') #پسورد
+  time.sleep(3)
+  #کلیک روی دکمه ادامه
+  btn2 = driver.find_element_by_xpath('//*[@id="main-container"]/section/div/div[1]/form/button')
+  ActionChains(driver).click(btn2).perform()
+  time.sleep(3)
+  #بازکردن منو و انتخاب دسته بندی
+  # mnu = driver.find_element_by_xpath('//*[@id="header"]/div/div[1]/div[1]/div[1]/button')
+  # ActionChains(driver).click(mnu).perform()
+  # time.sleep(3)
+  #کلیک روی دکمه نمایش بیشتر
+  # namayeshebishtar = driver.find_element_by_xpath('//*[@id="2"]/ul/li[23]/a')
+  # ActionChains(driver).click(namayeshebishtar).perform()
+  # time.sleep(3)
+  #انتخاب دسته بندی آموزشی
+  # cat = driver.find_element_by_xpath('//*[@id="2"]/ul/li[13]/a/div/span')
+  # ActionChains(driver).click(cat).perform()
+  # time.sleep(5)
+  #اسکرول صفحه برای نتایج بیشتر
+  for i in range(1, 10):
+      driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+  time.sleep(5)
+
+  #استخراج نام کانال ها از صفحه اول
+  source = driver.page_source
+  soup = BeautifulSoup(source , 'html.parser')
+  channels = []
+  videos = []
+  for chn in soup.select('a.thumb-channel'):
+      channels.append('https://aparat.com'+chn['href'])
+  print(channels)
+  for ch in channels:
+      driver.get(ch)
+      time.sleep(1)
+      allvid = driver.find_element_by_xpath('//*[@id="tab_channel_videos"]/span').click()
+      for v in soup.select('div.thumb-title > a.title'):
+        driver.get('https://aparat.com'+v['href'])
+        time.sleep(1)
+        like =driver.find_element_by_xpath('//*[@id="likeVideoButton"]').click()
+        fow = driver.find_element_by_xpath('//*[@id="details"]/div/div[2]/div[2]/button')
+        #اگر قبلا دنبال شده بود برو بعدی
+        if fow.text != 'دنبال شده':
+            ActionChains(driver).click(fow).perform()
+        else:
+            continue
+
+  time.sleep(5)
+  driver.quit()
+
+if __name__ == '__main__':
+  main()
+
